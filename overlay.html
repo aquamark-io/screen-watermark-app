@@ -37,11 +37,16 @@
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
       
-      const spacingX = 400;
-      const spacingY = 300;
+      // More symmetrical spacing
+      const spacingX = 350;
+      const spacingY = 250;
+      
+      // Start offset to center the grid better
+      const offsetX = (screenWidth % spacingX) / 2;
+      const offsetY = (screenHeight % spacingY) / 2;
 
-      for (let y = -200; y < screenHeight + 200; y += spacingY) {
-        for (let x = -200; x < screenWidth + 200; x += spacingX) {
+      for (let y = -200 + offsetY; y < screenHeight + 200; y += spacingY) {
+        for (let x = -200 + offsetX; x < screenWidth + 200; x += spacingX) {
           const watermark = document.createElement('div');
           watermark.className = 'watermark';
           watermark.textContent = watermarkText;

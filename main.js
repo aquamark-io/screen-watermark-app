@@ -2,9 +2,21 @@ const { app, BrowserWindow, Tray, Menu, screen, ipcMain } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const { machineIdSync } = require('node-machine-id');
+const AutoLaunch = require('auto-launch');
 
 const store = new Store();
 const API_URL = 'https://screen-api-eac9.onrender.com/api/screen-watermark';
+
+// Auto-start on Windows login
+const autoLauncher = new AutoLaunch({
+  name: 'Aquamark Screen Watermark',
+  path: app.getPath('exe'),
+});
+
+// Enable auto-launch
+autoLauncher.isEnabled().then((isEnabled) => {
+  if (!isEnabled) autoLauncher.enable();
+});
 
 let tray = null;
 let overlayWindows = [];

@@ -63,8 +63,12 @@ function createOverlays() {
 
     overlayWindow.setIgnoreMouseEvents(true);
     overlayWindow.loadFile('overlay.html');
-    overlayWindow.webContents.on('did-finish-load', () => {
-      overlayWindow.webContents.send('set-watermark', store.get('watermark_text'));
+overlayWindow.webContents.on('did-finish-load', () => {
+      const os = require('os');
+      const username = os.userInfo().username;
+      const userText = store.get('watermark_text');
+      const fullWatermark = `${userText} - ${username}`;
+      overlayWindow.webContents.send('set-watermark', fullWatermark);
     });
 
     overlayWindows.push(overlayWindow);

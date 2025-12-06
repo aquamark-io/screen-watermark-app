@@ -16,7 +16,7 @@
     }
     .watermark {
       position: absolute;
-      color: rgba(255, 0, 0, 0.10);
+      color: rgba(255, 0, 0, 0.8);
       font-size: 24px;
       font-family: Arial, sans-serif;
       font-weight: bold;
@@ -37,9 +37,9 @@
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
       
-      // More symmetrical spacing
-      const spacingX = 350;
-      const spacingY = 250;
+      // Much wider spacing - about half as many watermarks
+      const spacingX = 600;
+      const spacingY = 450;
       
       // Start offset to center the grid better
       const offsetX = (screenWidth % spacingX) / 2;

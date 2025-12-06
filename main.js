@@ -106,17 +106,11 @@ function createTray() {
     },
     {
       label: 'Check License',
-      click: () => {
-        validateLicense(false);
-      }
-    },
-    {
-      type: 'separator'
-    },
-    {
-      label: 'Quit',
-      click: () => {
-        app.quit();
+      click: async () => {
+        const valid = await validateLicense(false);
+        const message = valid ? 'License is valid and active!' : 'License is invalid or expired.';
+        // Note: In production, you'd want a proper dialog, but for now this logs to console
+        console.log(message);
       }
     }
   ]);
@@ -230,13 +224,19 @@ ipcMain.handle('activate', async (event, licenseKey, watermarkText) => {
 ipcMain.handle('update-watermark', async (event, newWatermarkText) => {
   store.set('watermark_text', newWatermarkText);
   
-  // Refresh overlays
-  destroyOverlays();
+  // Properly refresh overlays - destroy old ones first
+  overlayWindows.forEach(win => {
+    if (!win.isDestroyed()) {
+      win.close();
+    }
+  });
+  overlayWindows = [];
+  
+  // Create new overlays with updated text
   createOverlays();
 
   return { success: true };
 });
-
 // Get current watermark text
 ipcMain.handle('get-watermark', async () => {
   return store.get('watermark_text', '');

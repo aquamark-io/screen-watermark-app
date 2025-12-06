@@ -53,14 +53,15 @@
     }
     #message {
       margin-top: 15px;
-      padding: 10px;
+      padding: 12px;
       border-radius: 4px;
       display: none;
+      line-height: 1.5;
     }
     .error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
     }
   </style>
 </head>
@@ -102,7 +103,12 @@
       if (result.success) {
         showMessage('Activation successful!', false);
       } else {
-        showMessage(result.message || 'Activation failed', true);
+        // Check if it's a trial expiration message
+        if (result.message && result.message.includes('Trial has expired')) {
+          showMessage('Your 30-day free trial has expired. Email info@aquamark.io to purchase a license ($7.49/seat/month) or get it FREE when you sign up for Aquamark Document Watermarking.', true);
+        } else {
+          showMessage(result.message || 'Activation failed', true);
+        }
         activateBtn.disabled = false;
         activateBtn.textContent = 'Activate';
       }

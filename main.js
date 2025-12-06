@@ -75,7 +75,7 @@ function createOverlays() {
 
     overlayWindow.setIgnoreMouseEvents(true);
     overlayWindow.loadFile('overlay.html');
-overlayWindow.webContents.on('did-finish-load', () => {
+    overlayWindow.webContents.on('did-finish-load', () => {
       overlayWindow.webContents.send('set-watermark', store.get('watermark_text'));
     });
 
@@ -85,12 +85,18 @@ overlayWindow.webContents.on('did-finish-load', () => {
 
 // Destroy all overlay windows
 function destroyOverlays() {
+  console.log('Destroying overlays, count:', overlayWindows.length);
   overlayWindows.forEach(win => {
-    if (!win.isDestroyed()) {
-      win.close();
+    try {
+      if (win && !win.isDestroyed()) {
+        win.destroy();
+      }
+    } catch (e) {
+      console.error('Error destroying window:', e);
     }
   });
   overlayWindows = [];
+  console.log('Overlays destroyed');
 }
 
 // Create system tray
@@ -102,15 +108,6 @@ function createTray() {
       label: 'Edit Watermark Text',
       click: () => {
         createEditWindow();
-      }
-    },
-    {
-      label: 'Check License',
-      click: async () => {
-        const valid = await validateLicense(false);
-        const message = valid ? 'License is valid and active!' : 'License is invalid or expired.';
-        // Note: In production, you'd want a proper dialog, but for now this logs to console
-        console.log(message);
       }
     }
   ]);
@@ -222,21 +219,21 @@ ipcMain.handle('activate', async (event, licenseKey, watermarkText) => {
 
 // Handle edit watermark
 ipcMain.handle('update-watermark', async (event, newWatermarkText) => {
+  console.log('Updating watermark to:', newWatermarkText);
   store.set('watermark_text', newWatermarkText);
   
-  // Properly refresh overlays - destroy old ones first
-  overlayWindows.forEach(win => {
-    if (!win.isDestroyed()) {
-      win.close();
-    }
-  });
-  overlayWindows = [];
+  // Destroy old overlays
+  destroyOverlays();
+  
+  // Wait a moment for cleanup
+  await new Promise(resolve => setTimeout(resolve, 100));
   
   // Create new overlays with updated text
   createOverlays();
 
   return { success: true };
 });
+
 // Get current watermark text
 ipcMain.handle('get-watermark', async () => {
   return store.get('watermark_text', '');

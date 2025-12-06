@@ -1,0 +1,30 @@
+{
+  "name": "aquamark-screen-watermark",
+  "version": "1.0.0",
+  "description": "Aquamark Screen Watermarking Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --windows"
+  },
+  "build": {
+    "appId": "com.aquamark.screenwatermark",
+    "productName": "Aquamark Screen Watermark",
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "node-machine-id": "^1.1.12"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  }
+}

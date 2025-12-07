@@ -4,6 +4,19 @@ const Store = require('electron-store');
 const { machineIdSync } = require('node-machine-id');
 const AutoLaunch = require('auto-launch');
 
+// Prevent multiple instances
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    // Someone tried to run a second instance, ignore it
+    console.log('Second instance blocked');
+  });
+}
+
+
 const store = new Store();
 const API_URL = 'https://screen-api-eac9.onrender.com/api/screen-watermark';
 

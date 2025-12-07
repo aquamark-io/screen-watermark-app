@@ -190,14 +190,17 @@ ipcMain.handle('activate', async (event, licenseKey, watermarkText) => {
       store.set('license_key', licenseKey);
       store.set('watermark_text', watermarkText);
 
-      // Close activation window
-      if (activationWindow) {
-        activationWindow.close();
-      }
-
-      // Start overlays
+      // Start overlays and tray immediately
       createOverlays();
       createTray();
+
+      // Return success (let user see the message)
+      setTimeout(() => {
+        // Close activation window after 2 seconds
+        if (activationWindow) {
+          activationWindow.close();
+        }
+      }, 2000);
 
       return { success: true };
     } else {

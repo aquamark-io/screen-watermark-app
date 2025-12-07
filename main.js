@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, screen, ipcMain, shell, powerMonitor } = require('electron');
+const { app, BrowserWindow, Tray, Menu, screen, ipcMain, shell } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const { machineIdSync } = require('node-machine-id');
@@ -49,7 +49,6 @@ function createActivationWindow() {
 // Create overlay windows for all displays
 function createOverlays() {
   const displays = screen.getAllDisplays();
-  console.log('Creating overlays for', displays.length, 'displays');
   
   displays.forEach(display => {
     const overlayWindow = new BrowserWindow({
@@ -82,8 +81,6 @@ function createOverlays() {
 
     overlayWindows.push(overlayWindow);
   });
-  
-  console.log('Created', overlayWindows.length, 'overlay windows');
 }
 
 // Destroy all overlay windows
@@ -193,14 +190,17 @@ ipcMain.handle('activate', async (event, licenseKey, watermarkText) => {
       store.set('license_key', licenseKey);
       store.set('watermark_text', watermarkText);
 
-      // Close activation window
-      if (activationWindow) {
-        activationWindow.close();
-      }
-
-      // Start overlays
+      // Start overlays and tray immediately
       createOverlays();
       createTray();
+
+      // Return success (let user see the message)
+      setTimeout(() => {
+        // Close activation window after 2 seconds
+        if (activationWindow) {
+          activationWindow.close();
+        }
+      }, 2000);
 
       return { success: true };
     } else {
@@ -237,23 +237,6 @@ app.whenReady().then(() => {
           console.log('Display metrics changed - recreating overlays');
           destroyOverlays();
           setTimeout(() => createOverlays(), 500);
-        });
-        
-        // Listen for power events (sleep/wake)
-        powerMonitor.on('resume', () => {
-          console.log('System resumed from sleep - recreating overlays');
-          destroyOverlays();
-          setTimeout(() => createOverlays(), 1000);
-        });
-        
-        powerMonitor.on('unlock-screen', () => {
-          console.log('Screen unlocked - recreating overlays');
-          destroyOverlays();
-          setTimeout(() => createOverlays(), 1000);
-        });
-        
-        powerMonitor.on('lock-screen', () => {
-          console.log('Screen locked');
         });
       } else {
         createActivationWindow();

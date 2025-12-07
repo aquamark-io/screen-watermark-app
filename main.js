@@ -2,7 +2,6 @@ const { app, BrowserWindow, Tray, Menu, screen, ipcMain, shell } = require('elec
 const path = require('path');
 const Store = require('electron-store');
 const { machineIdSync } = require('node-machine-id');
-const AutoLaunch = require('auto-launch');
 
 // Prevent multiple instances
 const gotTheLock = app.requestSingleInstanceLock();
@@ -16,20 +15,8 @@ if (!gotTheLock) {
   });
 }
 
-
 const store = new Store();
 const API_URL = 'https://screen-api-eac9.onrender.com/api/screen-watermark';
-
-// Auto-start on Windows login
-const autoLauncher = new AutoLaunch({
-  name: 'Aquamark Screen Watermark',
-  path: app.getPath('exe'),
-});
-
-// Enable auto-launch
-autoLauncher.isEnabled().then((isEnabled) => {
-  if (!isEnabled) autoLauncher.enable();
-});
 
 let tray = null;
 let overlayWindows = [];
@@ -232,25 +219,6 @@ app.whenReady().then(() => {
       if (valid) {
         createOverlays();
         createTray();
-        
-        // Listen for display changes (monitors added/removed/wake from sleep)
-        screen.on('display-added', () => {
-          console.log('Display added - recreating overlays');
-          destroyOverlays();
-          setTimeout(() => createOverlays(), 500);
-        });
-        
-        screen.on('display-removed', () => {
-          console.log('Display removed - recreating overlays');
-          destroyOverlays();
-          setTimeout(() => createOverlays(), 500);
-        });
-        
-        screen.on('display-metrics-changed', () => {
-          console.log('Display metrics changed - recreating overlays');
-          destroyOverlays();
-          setTimeout(() => createOverlays(), 500);
-        });
       } else {
         createActivationWindow();
       }

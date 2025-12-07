@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, screen, ipcMain } = require('electron');
+const { app, BrowserWindow, Tray, Menu, screen, ipcMain, shell } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const { machineIdSync } = require('node-machine-id');
@@ -105,31 +105,22 @@ function createTray() {
   
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Edit Watermark Text',
+      label: 'Aquamark Screen Watermark',
+      enabled: false
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'About',
       click: () => {
-        createEditWindow();
+        shell.openExternal('https://aquamark.io');
       }
     }
   ]);
 
-  tray.setToolTip('Aquamark Screen Watermark');
+  tray.setToolTip('Aquamark Screen Watermark - Active');
   tray.setContextMenu(contextMenu);
-}
-
-// Create edit watermark window
-function createEditWindow() {
-  const editWindow = new BrowserWindow({
-    width: 400,
-    height: 250,
-    resizable: false,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
-    }
-  });
-
-  editWindow.loadFile('edit.html');
 }
 
 // Validate license with API
@@ -217,28 +208,6 @@ ipcMain.handle('activate', async (event, licenseKey, watermarkText) => {
   }
 });
 
-// Handle edit watermark
-ipcMain.handle('update-watermark', async (event, newWatermarkText) => {
-  console.log('Updating watermark to:', newWatermarkText);
-  store.set('watermark_text', newWatermarkText);
-  
-  // Destroy old overlays
-  destroyOverlays();
-  
-  // Wait a moment for cleanup
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
-  // Create new overlays with updated text
-  createOverlays();
-
-  return { success: true };
-});
-
-// Get current watermark text
-ipcMain.handle('get-watermark', async () => {
-  return store.get('watermark_text', '');
-});
-
 // App ready
 app.whenReady().then(() => {
   if (isActivated()) {
@@ -247,6 +216,25 @@ app.whenReady().then(() => {
       if (valid) {
         createOverlays();
         createTray();
+        
+        // Listen for display changes (monitors added/removed/wake from sleep)
+        screen.on('display-added', () => {
+          console.log('Display added - recreating overlays');
+          destroyOverlays();
+          setTimeout(() => createOverlays(), 500);
+        });
+        
+        screen.on('display-removed', () => {
+          console.log('Display removed - recreating overlays');
+          destroyOverlays();
+          setTimeout(() => createOverlays(), 500);
+        });
+        
+        screen.on('display-metrics-changed', () => {
+          console.log('Display metrics changed - recreating overlays');
+          destroyOverlays();
+          setTimeout(() => createOverlays(), 500);
+        });
       } else {
         createActivationWindow();
       }
